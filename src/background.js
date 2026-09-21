@@ -29,9 +29,13 @@ async function runSync() {
   }
 
   const blocked = computeBlockedSet(settings, unblocks, now);
-  await replaceRules(blocked);
-  await updateTabs(blocked);
-  await scheduleWake(nextWakeTime(settings, unblocks, now));
+  try {
+    await replaceRules(blocked);
+    await updateTabs(blocked);
+  } finally {
+    // Always arm the next wake-up, or a failed run would leave stale rules in place indefinitely.
+    await scheduleWake(nextWakeTime(settings, unblocks, now));
+  }
 }
 
 async function replaceRules(domains) {

@@ -11,10 +11,11 @@ const UNBLOCK_DURATION_MS = 10 * 60 * 1000;
 const byId = (id) => document.getElementById(id);
 const page = parseBlockedUrl(location.href);
 
-if (page) render();
+if (page) init();
 
-async function render() {
+async function init() {
   fetchQuote().then(renderQuote);
+  startCountdown();
 
   const now = new Date();
   const settings = await getSettings();
@@ -24,8 +25,7 @@ async function render() {
   byId('until').textContent = formatTime(timeOnDate(settings.schedule.end, now));
   byId('message').textContent = settings.message;
   renderVisited();
-  renderAttempts(await countAttempt(now));
-  startCountdown();
+  renderAttempts(await recordAttemptIfNew(now));
 }
 
 function renderVisited() {
@@ -36,16 +36,16 @@ function renderVisited() {
   byId('visited').hidden = false;
 }
 
-// Only real navigations count: not tabs swept here at a boundary, and not reloads.
-async function countAttempt(now) {
+// Saves and returns today's count, incremented only for a fresh navigation:
+// not a tab swept here at a boundary, a reload, or back/forward history.
+async function recordAttemptIfNew(now) {
   const attempts = await getAttempts();
-  const countedKey = `counted:${location.href}`;
-  if (page.swept || sessionStorage.getItem(countedKey)) {
+  const [navigation] = performance.getEntriesByType('navigation');
+  if (page.swept || navigation?.type !== 'navigate') {
     return attemptCount(attempts, page.site, now);
   }
   const result = recordAttempt(attempts, page.site, now);
   await saveAttempts(result.attempts);
-  sessionStorage.setItem(countedKey, '1');
   return result.count;
 }
 
@@ -76,7 +76,7 @@ function startCountdown() {
     update();
     if (remaining === 0) clearInterval(timer);
   }, 1000);
-  button.addEventListener('click', unblock, { once: true });
+  button.addEventListener('click', unblock);
 }
 
 // The service worker's sync() sees the storage change and navigates this tab back.
@@ -84,6 +84,12 @@ async function unblock() {
   const button = byId('unblock');
   button.disabled = true;
   button.textContent = 'Unblocking…';
-  const unblocks = await getUnblocks();
-  await saveUnblocks({ ...unblocks, [page.site]: Date.now() + UNBLOCK_DURATION_MS });
+  try {
+    const unblocks = await getUnblocks();
+    await saveUnblocks({ ...unblocks, [page.site]: Date.now() + UNBLOCK_DURATION_MS });
+  } catch (error) {
+    console.error('[focus-hours] unblock failed', error);
+    button.disabled = false;
+    button.textContent = 'Unblock failed. Try again';
+  }
 }

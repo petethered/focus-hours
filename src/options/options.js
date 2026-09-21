@@ -35,7 +35,7 @@ async function init() {
   setInterval(renderStatus, STATUS_REFRESH_MS);
 }
 
-async function update(changes) {
+async function updateSettings(changes) {
   settings = { ...settings, ...changes };
   await saveSettings(settings);
   renderStatus();
@@ -65,7 +65,7 @@ function renderSites() {
       remove.type = 'button';
       remove.textContent = 'Remove';
       remove.setAttribute('aria-label', `Remove ${site}`);
-      remove.addEventListener('click', () => update({ sites: settings.sites.filter((s) => s !== site) }));
+      remove.addEventListener('click', () => updateSettings({ sites: settings.sites.filter((s) => s !== site) }));
       item.append(name, remove);
       return item;
     }),
@@ -79,7 +79,7 @@ async function onAddSite(event) {
   showError('site-error', result.error);
   if (result.error) return;
   input.value = '';
-  await update({ sites: result.sites });
+  await updateSettings({ sites: result.sites });
   renderSites();
 }
 
@@ -109,7 +109,7 @@ async function onSaveSchedule(event) {
   event.preventDefault();
   const schedule = readScheduleForm();
   if (validateSchedule(schedule)) return;
-  await update({ schedule });
+  await updateSettings({ schedule });
   flash('schedule-saved');
 }
 
@@ -117,13 +117,13 @@ async function onSaveMessage(event) {
   event.preventDefault();
   const message = byId('message').value.trim() || DEFAULT_MESSAGE;
   byId('message').value = message;
-  await update({ message });
+  await updateSettings({ message });
   flash('message-saved');
 }
 
 async function onResetMessage() {
   byId('message').value = DEFAULT_MESSAGE;
-  await update({ message: DEFAULT_MESSAGE });
+  await updateSettings({ message: DEFAULT_MESSAGE });
   flash('message-saved');
 }
 
