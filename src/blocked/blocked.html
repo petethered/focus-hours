@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blocked</title>
+    <link rel="stylesheet" href="blocked.css" />
+  </head>
+  <body>
+    <main class="card">
+      <h1 id="headline"></h1>
+      <p class="status"><span id="site"></span> is blocked until <span id="until"></span>.</p>
+      <p id="message"></p>
+      <p id="attempts" hidden></p>
+
+      <section id="visited" hidden>
+        <h2>You were on</h2>
+        <p id="visited-title"></p>
+        <p id="visited-url"></p>
+      </section>
+
+      <figure id="quote">
+        <blockquote id="quote-text"></blockquote>
+        <figcaption id="quote-author"></figcaption>
+        <a id="quote-credit" href="https://zenquotes.io/" target="_blank" rel="noopener" hidden>Quotes from ZenQuotes</a>
+      </figure>
+
+      <button id="unblock" type="button" disabled>Unblock for 10 min</button>
+    </main>
+    <script type="module" src="blocked.js"></script>
+  </body>
+</html>
