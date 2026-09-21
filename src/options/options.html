@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Focus Hours settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Focus Hours</h1>
+      <p id="status" role="status"></p>
+
+      <section>
+        <h2>Blocked sites</h2>
+        <ul id="sites"></ul>
+        <form id="add-site">
+          <label for="site-input">Add a site</label>
+          <input id="site-input" type="text" placeholder="twitter.com" autocomplete="off" />
+          <button type="submit">Add</button>
+        </form>
+        <p id="site-error" class="error" role="alert" hidden></p>
+      </section>
+
+      <section>
+        <h2>Schedule</h2>
+        <form id="schedule-form">
+          <fieldset id="days">
+            <legend>Days</legend>
+            <label><input type="checkbox" value="1" /> Mon</label>
+            <label><input type="checkbox" value="2" /> Tue</label>
+            <label><input type="checkbox" value="3" /> Wed</label>
+            <label><input type="checkbox" value="4" /> Thu</label>
+            <label><input type="checkbox" value="5" /> Fri</label>
+            <label><input type="checkbox" value="6" /> Sat</label>
+            <label><input type="checkbox" value="0" /> Sun</label>
+          </fieldset>
+          <label for="start">From</label>
+          <input id="start" type="time" required />
+          <label for="end">Until</label>
+          <input id="end" type="time" required />
+          <p id="schedule-error" class="error" role="alert" hidden></p>
+          <button id="save-schedule" type="submit">Save schedule</button>
+          <span id="schedule-saved" class="saved" hidden>Saved</span>
+        </form>
+      </section>
+
+      <section>
+        <h2>Block page message</h2>
+        <form id="message-form">
+          <label for="message">Shown on the block page</label>
+          <textarea id="message" rows="3"></textarea>
+          <button type="submit">Save message</button>
+          <button id="reset-message" type="button" class="link">Reset to default</button>
+          <span id="message-saved" class="saved" hidden>Saved</span>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
