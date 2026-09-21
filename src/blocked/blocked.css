@@ -1,34 +1,228 @@
+/* Focus Hours block page: a post-it slapped over the site you reached for. */
+
 :root {
   color-scheme: light dark;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --note: #ffe14d;      /* post-it yellow: the page itself */
+  --ink: #1f1b4d;       /* deep navy ink: all text */
+  --ink-soft: #4a4577;  /* secondary text on the note */
+  --punch: #d6246e;     /* the punchline underline */
+  --calm: #f3f2f8;      /* the quote band: the quiet counterweight */
+  --calm-ink: #3b3766;  /* quote text */
+
+  --display: "Avenir Next", "Avenir", "Futura", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --text: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, Georgia, serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --gutter: clamp(20px, 6vw, 56px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --note: #1d1a45;
+    --ink: #fff3b0;
+    --ink-soft: #c9c4ee;
+    --punch: #ff79b0;
+    --calm: #272360;
+    --calm-ink: #dcd9f7;
+  }
+}
+
+[hidden] {
+  display: none !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--note);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  box-sizing: border-box;
+  background: var(--note);
+  color: var(--ink);
+  font: 400 1.0625rem/1.5 var(--text);
+  overflow-x: hidden;
 }
 
-.card {
-  max-width: 560px;
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page > * {
   width: 100%;
+  max-width: 50rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* The hero: the snarky headline, stuck on slightly askew. */
+
+.caught {
+  padding-block: clamp(40px, 10vh, 96px) 40px;
+}
+
+#headline {
+  margin: 0 0 20px;
+  font: 800 clamp(2.75rem, 10vw, 4.5rem) / 1.04 var(--display);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  transform: rotate(-1.5deg);
+  transform-origin: left center;
+  animation: slap 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes slap {
+  from {
+    opacity: 0;
+    transform: rotate(-4deg) scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-1.5deg) scale(1);
+  }
+}
+
+/* The punchline: lands right under the headline. */
+
+#attempts {
+  margin: 0 0 32px;
+  font: 600 1.25rem/1.4 var(--display);
+  text-decoration: underline wavy var(--punch) 2px;
+  text-underline-offset: 6px;
+  text-decoration-skip-ink: none;
+  text-wrap: pretty;
+}
+
+.status {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+#site,
+#until {
+  white-space: nowrap;
+}
+
+#message {
+  margin: 0;
+  max-width: 34em;
+  color: var(--ink-soft);
+}
+
+/* The counterweight: a quiet band with a calm serif quote. */
+
+#quote {
+  margin: 0;
+  max-width: none;
+  padding-block: 40px;
+  min-height: 12rem; /* reserve space so the layout does not jump when the quote arrives */
+  background: var(--calm);
+  color: var(--calm-ink);
+  padding-inline: max(var(--gutter), calc((100% - 50rem) / 2 + var(--gutter)));
+}
+
+#quote-text {
+  margin: 0 0 12px;
+  max-width: 32em;
+  font: italic 400 1.3rem/1.55 var(--serif);
+  text-wrap: pretty;
+}
+
+#quote-author {
+  font: 400 0.95rem/1.4 var(--serif);
+}
+
+#quote-credit {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: inherit;
+  opacity: 0.8;
+}
+
+/* The escape hatch: small, quiet, and slow on purpose. */
+
+.escape {
+  margin-top: auto;
+  padding-block: 32px 40px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 32px;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+#visited {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+#visited h2 {
+  margin: 0 0 2px;
+  font-size: inherit;
+  font-weight: 600;
+}
+
+#visited-title {
+  margin: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 #visited-url {
+  margin: 0;
+  font: 0.8rem/1.4 var(--mono);
   overflow-wrap: anywhere;
-  font-family: ui-monospace, monospace;
-  font-size: 0.85em;
-}
-
-#quote {
-  margin: 24px 0;
-  min-height: 6em; /* reserve space so the layout does not jump when the quote arrives */
 }
 
 #unblock {
-  font: inherit;
-  padding: 10px 16px;
+  flex: none;
+  margin-left: auto;
+  padding: 7px 14px;
+  font: 500 0.875rem/1.2 var(--text);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+#unblock:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--note);
+}
+
+#unblock:disabled {
+  color: var(--ink-soft);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+#unblock:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+:focus-visible {
+  outline: 3px solid var(--punch);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #headline {
+    animation: none;
+  }
 }

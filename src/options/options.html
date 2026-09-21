@@ -8,16 +8,20 @@
   </head>
   <body>
     <main>
-      <h1>Focus Hours</h1>
-      <p id="status" role="status"></p>
+      <header class="masthead">
+        <h1>Focus Hours</h1>
+        <p id="status" role="status"></p>
+      </header>
 
       <section>
         <h2>Blocked sites</h2>
         <ul id="sites"></ul>
         <form id="add-site">
           <label for="site-input">Add a site</label>
-          <input id="site-input" type="text" placeholder="twitter.com" autocomplete="off" />
-          <button type="submit">Add</button>
+          <div class="row">
+            <input id="site-input" type="text" placeholder="twitter.com" autocomplete="off" />
+            <button type="submit">Add</button>
+          </div>
         </form>
         <p id="site-error" class="error" role="alert" hidden></p>
       </section>
@@ -35,13 +39,21 @@
             <label><input type="checkbox" value="6" /> Sat</label>
             <label><input type="checkbox" value="0" /> Sun</label>
           </fieldset>
-          <label for="start">From</label>
-          <input id="start" type="time" required />
-          <label for="end">Until</label>
-          <input id="end" type="time" required />
+          <div class="times">
+            <div class="field">
+              <label for="start">From</label>
+              <input id="start" type="time" required />
+            </div>
+            <div class="field">
+              <label for="end">Until</label>
+              <input id="end" type="time" required />
+            </div>
+          </div>
           <p id="schedule-error" class="error" role="alert" hidden></p>
-          <button id="save-schedule" type="submit">Save schedule</button>
-          <span id="schedule-saved" class="saved" hidden>Saved</span>
+          <div class="actions">
+            <button id="save-schedule" type="submit">Save schedule</button>
+            <span id="schedule-saved" class="saved" hidden>Saved</span>
+          </div>
         </form>
       </section>
 
@@ -50,9 +62,11 @@
         <form id="message-form">
           <label for="message">Shown on the block page</label>
           <textarea id="message" rows="3"></textarea>
-          <button type="submit">Save message</button>
-          <button id="reset-message" type="button" class="link">Reset to default</button>
-          <span id="message-saved" class="saved" hidden>Saved</span>
+          <div class="actions">
+            <button type="submit">Save message</button>
+            <button id="reset-message" type="button" class="link">Reset to default</button>
+            <span id="message-saved" class="saved" hidden>Saved</span>
+          </div>
         </form>
       </section>
     </main>
