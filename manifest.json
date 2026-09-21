@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Focus Hours",
+  "version": "0.1.0",
+  "description": "Blocks distracting sites on a schedule.",
+  "permissions": ["storage", "alarms", "declarativeNetRequest", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Focus Hours settings"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/blocked/blocked.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
