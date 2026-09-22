@@ -1,6 +1,6 @@
 {
   "name": "focus-hours",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Chrome extension that blocks distracting sites on a schedule.",
   "license": "MIT",
   "private": true,

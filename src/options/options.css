@@ -77,6 +77,37 @@ main {
   margin: 0 auto;
 }
 
+/* Wide enough for two columns: settings on the left, the stats alongside. */
+@media (min-width: 62rem) {
+  main {
+    max-width: 68rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    grid-auto-flow: row dense;
+    column-gap: 40px;
+    align-items: start;
+  }
+
+  .masthead {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  /* The stats sit beside the settings and stay put while the left column scrolls. */
+  #stats {
+    grid-column: 2;
+    /* Spans the settings sections beside it, so they keep flowing down column 1. */
+    grid-row: 2 / span 3;
+    align-self: start;
+    position: sticky;
+    top: 24px;
+  }
+
+  main > section:not(#stats) {
+    grid-column: 1;
+  }
+}
+
 /* Header and status */
 
 .masthead {
