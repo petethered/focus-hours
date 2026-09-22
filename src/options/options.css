@@ -15,6 +15,16 @@
   --error: #b3261e;
   --chip-on: #fff3b0;   /* checked days: a pale wash of the note */
 
+  /* Chart series, in fixed order. Validated on this surface for colour-vision
+     deficiency separation and contrast; the dark set is stepped separately. */
+  --series-1: #d6246e;
+  --series-2: #2f7de1;
+  --series-3: #14916b;
+  --series-4: #c06a12;
+  --series-5: #7a5af5;
+  --series-6: #0f9fb5;
+  --series-other: #6b6785;
+
   --text: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --display: "Avenir Next", "Avenir", "Futura", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
 }
@@ -32,6 +42,14 @@
     --accent-ink: #1f1b4d;
     --error: #ff8a80;
     --chip-on: #3a3452;
+
+    --series-1: #e05590;
+    --series-2: #4a93e8;
+    --series-3: #2fa87c;
+    --series-4: #bb7f22;
+    --series-5: #8f81e8;
+    --series-6: #d06a4a;
+    --series-other: #918cc0;
   }
 }
 
@@ -125,15 +143,62 @@ form > label {
 }
 
 #sites li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
   padding: 8px 8px 8px 14px;
 }
 
 #sites li + li {
   border-top: 1px solid var(--line);
+}
+
+.site-head,
+#sites li {
+  display: grid;
+  grid-template-columns: 1fr 96px 88px;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-head {
+  padding: 0 8px 6px 14px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.site-head span:nth-child(2) {
+  text-align: center;
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+/* The same chip the day picker uses, with only the tick showing. */
+#sites li .chip {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: -9999px;
+}
+
+#sites li .chip:has(:checked) {
+  background: var(--chip-on);
+  border-color: var(--accent);
+}
+
+#sites li .chip input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  text-indent: 0;
 }
 
 #sites li span {
@@ -300,4 +365,149 @@ button.link:hover {
 .field label {
   display: block;
   margin-bottom: 6px;
+}
+
+/* Attempts */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.tile-label {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.tile-value {
+  font-family: var(--display);
+  font-size: 1.375rem;
+  overflow-wrap: anywhere;
+}
+
+.tile-note {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+#stats-chart {
+  margin: 0 0 12px;
+  padding: 12px 12px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.chart-tick,
+.chart-day {
+  fill: var(--muted);
+  font-size: 11px;
+  font-family: var(--text);
+}
+
+.chart-tick {
+  text-anchor: end;
+}
+
+.chart-value {
+  fill: var(--ink);
+  font-size: 11px;
+  font-family: var(--text);
+  font-weight: 600;
+}
+
+.chart-bar:hover {
+  opacity: 0.85;
+}
+
+#chart-readout {
+  margin: 2px 0 0;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  min-height: 1.4em;
+}
+
+#chart-caption {
+  margin-top: 6px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+#stats-table-view {
+  margin-bottom: 20px;
+  font-size: 0.9375rem;
+}
+
+#stats-table-view summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.chart-table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+}
+
+.chart-table th,
+.chart-table td {
+  padding: 4px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+  font-weight: 400;
+}
+
+.chart-table th[scope="row"],
+.chart-table thead th:first-child {
+  text-align: left;
+}
+
+.chart-table thead th {
+  color: var(--muted);
 }

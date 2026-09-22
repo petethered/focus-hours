@@ -13,9 +13,29 @@
         <p id="status" role="status"></p>
       </header>
 
+      <section id="stats">
+        <h2>Attempts</h2>
+        <p id="stats-empty" hidden>Nothing recorded yet. The chart fills in as you go.</p>
+        <div id="stats-tiles"></div>
+        <figure id="stats-chart">
+          <div id="chart-plot"></div>
+          <figcaption id="chart-caption">Attempts per day over the last 14 days, by site.</figcaption>
+          <p id="chart-readout" aria-hidden="true"></p>
+        </figure>
+        <details id="stats-table-view">
+          <summary>Show the numbers</summary>
+        </details>
+      </section>
+
       <section>
         <h2>Blocked sites</h2>
-        <ul id="sites"></ul>
+        <p class="hint" id="sites-hint">
+          Tick <strong>from search</strong> to let a site open when you click it in search
+          results. You stay in the section you landed in &mdash; that subreddit or that video
+          &mdash; and the rest of the site stays blocked.
+        </p>
+        <div class="site-head" aria-hidden="true"><span>Site</span><span>from search</span></div>
+        <ul id="sites" aria-describedby="sites-hint"></ul>
         <form id="add-site">
           <label for="site-input">Add a site</label>
           <div class="row">

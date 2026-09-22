@@ -1,5 +1,6 @@
 import { isBlockedNow, nextBoundary } from './schedule.js';
 import { matchesDomain } from './domains.js';
+import { SEARCH_ENGINE_DOMAINS } from './searchPass.js';
 import { buildBlockedUrl, redirectSubstitution, parseBlockedUrl } from './blockedUrl.js';
 
 export function activeUnblocks(unblocks, now) {
@@ -11,7 +12,19 @@ export function activeUnblocks(unblocks, now) {
 export function computeBlockedSet(settings, unblocks, now) {
   if (!isBlockedNow(settings.schedule, now)) return [];
   const active = activeUnblocks(unblocks, now);
-  return settings.sites.filter((site) => !(site in active));
+  return settings.sites.map((site) => site.domain).filter((domain) => !(domain in active));
+}
+
+export function searchPassDomains(settings, blocked) {
+  return blocked.filter((domain) => allowsSearchPass(settings, domain));
+}
+
+export function allowsSearchPass(settings, domain) {
+  return settings.sites.some((site) => site.domain === domain && site.searchPass);
+}
+
+export function matchingSite(url, domains) {
+  return domains.find((domain) => matchesDomain(url, domain)) ?? null;
 }
 
 export function nextWakeTime(settings, unblocks, now) {
@@ -37,6 +50,23 @@ export function buildRedirectRules(domains, base) {
   }));
 }
 
+// Allow rules outrank the block rules, so a page opened from a search result loads.
+// Staying inside the section it opened is enforced per tab in background.js.
+const SEARCH_ALLOW_RULE_OFFSET = 1000;
+
+export function buildSearchAllowRules(domains) {
+  return domains.map((domain, index) => ({
+    id: SEARCH_ALLOW_RULE_OFFSET + index + 1,
+    priority: 2,
+    action: { type: 'allow' },
+    condition: {
+      requestDomains: [domain],
+      initiatorDomains: SEARCH_ENGINE_DOMAINS,
+      resourceTypes: ['main_frame'],
+    },
+  }));
+}
+
 export function tabRedirect({ url, title }, blocked, base) {
   if (!url) return null;
   if (url.startsWith(base)) {
@@ -44,6 +74,6 @@ export function tabRedirect({ url, title }, blocked, base) {
     if (!page || blocked.includes(page.site)) return null;
     return /^https?:\/\//i.test(page.url) ? page.url : null;
   }
-  const site = blocked.find((domain) => matchesDomain(url, domain));
+  const site = matchingSite(url, blocked);
   return site ? buildBlockedUrl(base, { site, url, title, swept: true }) : null;
 }
