@@ -59,17 +59,41 @@ function renderSites() {
   list.replaceChildren(
     ...settings.sites.map((site) => {
       const item = document.createElement('li');
+
       const name = document.createElement('span');
-      name.textContent = site;
+      name.textContent = site.domain;
+
+      const pass = document.createElement('input');
+      pass.type = 'checkbox';
+      pass.checked = site.searchPass;
+      pass.id = `from-search-${site.domain}`;
+      pass.addEventListener('change', () => setSearchPass(site.domain, pass.checked));
+
+      const passLabel = document.createElement('label');
+      passLabel.className = 'chip';
+      passLabel.htmlFor = pass.id;
+      passLabel.append(pass, `from search: ${site.domain}`);
+
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.textContent = 'Remove';
-      remove.setAttribute('aria-label', `Remove ${site}`);
-      remove.addEventListener('click', () => updateSettings({ sites: settings.sites.filter((s) => s !== site) }));
-      item.append(name, remove);
+      remove.setAttribute('aria-label', `Remove ${site.domain}`);
+      remove.addEventListener('click', () => removeSite(site.domain));
+
+      item.append(name, passLabel, remove);
       return item;
     }),
   );
+}
+
+function removeSite(domain) {
+  return updateSettings({ sites: settings.sites.filter((site) => site.domain !== domain) });
+}
+
+function setSearchPass(domain, searchPass) {
+  return updateSettings({
+    sites: settings.sites.map((site) => (site.domain === domain ? { ...site, searchPass } : site)),
+  });
 }
 
 async function onAddSite(event) {

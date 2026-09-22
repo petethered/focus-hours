@@ -125,15 +125,62 @@ form > label {
 }
 
 #sites li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
   padding: 8px 8px 8px 14px;
 }
 
 #sites li + li {
   border-top: 1px solid var(--line);
+}
+
+.site-head,
+#sites li {
+  display: grid;
+  grid-template-columns: 1fr 96px 88px;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-head {
+  padding: 0 8px 6px 14px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.site-head span:nth-child(2) {
+  text-align: center;
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+/* The same chip the day picker uses, with only the tick showing. */
+#sites li .chip {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: -9999px;
+}
+
+#sites li .chip:has(:checked) {
+  background: var(--chip-on);
+  border-color: var(--accent);
+}
+
+#sites li .chip input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  text-indent: 0;
 }
 
 #sites li span {

@@ -15,7 +15,13 @@
 
       <section>
         <h2>Blocked sites</h2>
-        <ul id="sites"></ul>
+        <p class="hint" id="sites-hint">
+          Tick <strong>from search</strong> to let a site open when you click it in search
+          results. You stay in the section you landed in &mdash; that subreddit or that video
+          &mdash; and the rest of the site stays blocked.
+        </p>
+        <div class="site-head" aria-hidden="true"><span>Site</span><span>from search</span></div>
+        <ul id="sites" aria-describedby="sites-hint"></ul>
         <form id="add-site">
           <label for="site-input">Add a site</label>
           <div class="row">

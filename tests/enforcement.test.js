@@ -3,15 +3,21 @@ import assert from 'node:assert/strict';
 import {
   activeUnblocks,
   computeBlockedSet,
+  searchPassDomains,
   nextWakeTime,
   buildRedirectRules,
+  buildSearchAllowRules,
   tabRedirect,
 } from '../src/enforcement.js';
+import { SEARCH_ENGINE_DOMAINS } from '../src/searchPass.js';
 import { buildBlockedUrl } from '../src/blockedUrl.js';
 
 const BASE = 'chrome-extension://abc/src/blocked/blocked.html';
 const SETTINGS = {
-  sites: ['reddit.com', 'youtube.com'],
+  sites: [
+    { domain: 'reddit.com', searchPass: true },
+    { domain: 'youtube.com', searchPass: false },
+  ],
   schedule: { days: [1, 2, 3, 4, 5], start: '10:00', end: '16:00' },
   message: 'Back to work.',
 };
@@ -40,6 +46,31 @@ test('computeBlockedSet ignores expired unblocks', () => {
 
 test('computeBlockedSet is empty outside the window', () => {
   assert.deepEqual(computeBlockedSet(SETTINGS, {}, MONDAY_EVENING), []);
+});
+
+test('searchPassDomains keeps only blocked sites that allow search links', () => {
+  assert.deepEqual(searchPassDomains(SETTINGS, ['reddit.com', 'youtube.com']), ['reddit.com']);
+  assert.deepEqual(searchPassDomains(SETTINGS, ['youtube.com']), []);
+  assert.deepEqual(searchPassDomains(SETTINGS, []), []);
+});
+
+test('buildSearchAllowRules allows search-initiated page loads, outranking the block rules', () => {
+  const [rule, ...rest] = buildSearchAllowRules(['reddit.com']);
+  assert.equal(rest.length, 0);
+  assert.deepEqual(rule.action, { type: 'allow' });
+  assert.deepEqual(rule.condition, {
+    requestDomains: ['reddit.com'],
+    initiatorDomains: SEARCH_ENGINE_DOMAINS,
+    resourceTypes: ['main_frame'],
+  });
+  assert.ok(rule.priority > buildRedirectRules(['reddit.com'], BASE)[0].priority);
+});
+
+test('buildSearchAllowRules ids never collide with the block rules', () => {
+  const blockIds = buildRedirectRules(Array.from({ length: 50 }, (_, i) => `s${i}.com`), BASE).map((r) => r.id);
+  const allowIds = buildSearchAllowRules(['a.com', 'b.com']).map((r) => r.id);
+  assert.equal(allowIds.length, 2);
+  for (const id of allowIds) assert.ok(!blockIds.includes(id));
 });
 
 test('nextWakeTime is the next boundary with no unblocks', () => {

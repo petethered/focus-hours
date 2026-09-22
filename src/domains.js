@@ -26,13 +26,22 @@ export function matchesDomain(url, domain) {
   return host === domain || host.endsWith(`.${domain}`);
 }
 
+// A site entry is { domain, searchPass }; older settings stored a bare domain string.
+export function normalizeSites(sites) {
+  if (!Array.isArray(sites)) return [];
+  return sites
+    .map((entry) => (typeof entry === 'string' ? { domain: entry, searchPass: false } : entry))
+    .filter((entry) => entry && typeof entry.domain === 'string')
+    .map((entry) => ({ domain: entry.domain, searchPass: entry.searchPass === true }));
+}
+
 export function addSite(sites, input) {
   const domain = normalizeDomain(input);
   if (!domain) {
     return { sites, error: `"${input.trim()}" doesn't look like a website.` };
   }
-  if (sites.includes(domain)) {
+  if (sites.some((site) => site.domain === domain)) {
     return { sites, error: `${domain} is already on the list.` };
   }
-  return { sites: [...sites, domain], error: null };
+  return { sites: [...sites, { domain, searchPass: false }], error: null };
 }
