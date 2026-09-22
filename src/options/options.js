@@ -1,4 +1,6 @@
-import { DEFAULT_MESSAGE, getSettings, saveSettings } from '../storage.js';
+import { DEFAULT_MESSAGE, getSettings, saveSettings, getHistory } from '../storage.js';
+import { CHART_DAYS, summarize } from '../history.js';
+import { renderChart, renderLegend, renderTable, renderTiles } from './chart.js';
 import { addSite } from '../domains.js';
 import { isBlockedNow, nextBoundary, validateSchedule, formatTime } from '../schedule.js';
 
@@ -15,6 +17,7 @@ init();
 async function init() {
   settings = await getSettings();
   renderStatus();
+  await renderStats();
   renderSites();
   renderSchedule();
   byId('message').value = settings.message;
@@ -27,7 +30,9 @@ async function init() {
 
   // Keep the list and status current if settings change elsewhere (e.g. another options tab).
   chrome.storage.onChanged.addListener(async (changes, area) => {
-    if (area !== 'local' || !changes.settings) return;
+    if (area !== 'local') return;
+    if (changes.history) await renderStats();
+    if (!changes.settings) return;
     settings = await getSettings();
     renderSites();
     renderStatus();
@@ -52,6 +57,40 @@ function renderStatus() {
     text = `Next block starts ${weekday} ${formatTime(next)}.`;
   }
   byId('status').textContent = text;
+}
+
+async function renderStats() {
+  const stats = summarize(await getHistory(), new Date(), CHART_DAYS);
+  const empty = stats.total === 0 && stats.unblocks === 0;
+  byId('stats-empty').hidden = !empty;
+  byId('stats-chart').hidden = empty;
+  byId('stats-table-view').hidden = empty;
+  if (empty) {
+    byId('stats-tiles').replaceChildren();
+    return;
+  }
+
+  byId('stats-tiles').replaceChildren(renderTiles(stats));
+
+  const readout = byId('chart-readout');
+  byId('chart-caption').textContent =
+    stats.sites.length === 1
+      ? `Attempts at ${stats.sites[0]} per day, over the last ${CHART_DAYS} days.`
+      : `Attempts per day over the last ${CHART_DAYS} days, by site.`;
+  byId('chart-plot').replaceChildren(
+    renderChart({
+      stats,
+      onHover: (text) => {
+        readout.textContent = text ?? '';
+      },
+    }),
+    renderLegend(stats) ?? '',
+  );
+
+  byId('stats-table-view').replaceChildren(
+    Object.assign(document.createElement('summary'), { textContent: 'Show the numbers' }),
+    renderTable(stats),
+  );
 }
 
 function renderSites() {

@@ -35,13 +35,16 @@ export async function saveUnblocks(unblocks) {
   await chrome.storage.local.set({ unblocks });
 }
 
-export async function getAttempts() {
-  const { attempts = null } = await chrome.storage.local.get('attempts');
-  return attempts;
+// Installs from before day-by-day history kept only today's counts, under `attempts`.
+export async function getHistory() {
+  const { history, attempts } = await chrome.storage.local.get(['history', 'attempts']);
+  if (history) return history;
+  if (attempts?.date) return { [attempts.date]: { attempts: attempts.counts, unblocks: {} } };
+  return {};
 }
 
-export async function saveAttempts(attempts) {
-  await chrome.storage.local.set({ attempts });
+export async function saveHistory(history) {
+  await chrome.storage.local.set({ history });
 }
 
 // Search passes live in session storage: they belong to one tab and one browsing

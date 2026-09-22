@@ -11,6 +11,7 @@ import {
   tabRedirect,
 } from './enforcement.js';
 import { sectionScope, sectionPattern, isWithinScope } from './searchPass.js';
+import { recordEvent, dayCount, pruneHistory } from './history.js';
 import {
   DEFAULT_SETTINGS,
   getSettings,
@@ -21,6 +22,8 @@ import {
   savePass,
   clearPass,
   clearAllPasses,
+  getHistory,
+  saveHistory,
 } from './storage.js';
 
 const ALARM_NAME = 'sync';
@@ -221,8 +224,17 @@ async function scheduleWake(when) {
 
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   if (reason === 'install') await saveSettings(structuredClone(DEFAULT_SETTINGS));
+  await migrateHistory();
   sync();
 });
+
+// Carry a pre-history install's single day of counts over, then drop the old key.
+async function migrateHistory() {
+  const { attempts } = await chrome.storage.local.get('attempts');
+  if (!attempts) return;
+  await saveHistory(await getHistory());
+  await chrome.storage.local.remove('attempts');
+}
 
 chrome.runtime.onStartup.addListener(sync);
 
@@ -234,6 +246,24 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_NAME) sync();
+});
+
+// The block page asks the worker to record, so simultaneous tabs queue behind
+// each other instead of overwriting one another's history.
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type !== 'history') return false;
+  enqueue(async () => {
+    const now = new Date();
+    const history = await getHistory();
+    if (!message.record) {
+      sendResponse({ count: dayCount(history, message.kind, message.site, now) });
+      return;
+    }
+    const result = recordEvent(history, message.kind, message.site, now);
+    await saveHistory(pruneHistory(result.history, now));
+    sendResponse({ count: result.count });
+  });
+  return true; // the response goes out asynchronously
 });
 
 chrome.webNavigation.onCommitted.addListener((details) => {

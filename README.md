@@ -11,6 +11,7 @@ A Chrome extension that blocks distracting sites on a schedule. By default it bl
 - **A block page with some attitude.** It shows a random snarky headline, your own message, a count of how many times you've tried the site today, and a productivity quote.
 - **Search results can still get through.** Tick "from search" for a site and a link you click in Google, Bing or DuckDuckGo opens. You stay in the section you landed in — that subreddit, or that one video — and the rest of the site stays blocked. Typing the address yourself is still blocked.
 - **A slow escape hatch.** The unblock button counts down 10 seconds before it can be clicked. The countdown only runs while the tab is visible. Unblocking lifts the block on that one site for 10 minutes, then it comes back.
+- **Stats that build up.** The settings page charts the last 14 days: a bar per day, split by site, with the numbers beside it — today's attempts, the site you reach for most, how often you unblocked, and your busiest and quietest days.
 - **Light and dark themes** that follow your system setting.
 
 | Block page (dark) | Settings |
@@ -36,12 +37,13 @@ On the settings page you can:
 - **Allow search results per site.** Each site has a "from search" checkbox, so you can let Reddit threads through while YouTube stays shut.
 - **Set the schedule:** which days, plus a start and end time. The window can't cross midnight.
 - **Edit the block page message,** or reset it to the default.
+- **Read the stats.** Hover a bar to see that day's breakdown, or open "Show the numbers" for the same data as a table.
 
 Changes take effect immediately, with no reload needed.
 
 ## Privacy
 
-- Your settings, unblock timers and daily attempt counts are stored locally in `chrome.storage.local`. Nothing is synced or sent anywhere.
+- Your settings, unblock timers and the day-by-day history of attempts and unblocks are stored locally in `chrome.storage.local`. History older than 90 days is discarded. Nothing is synced or sent anywhere.
 - To show a quote, the block page requests a random quote from [ZenQuotes](https://zenquotes.io/) each time it loads. ZenQuotes sees an ordinary request from your browser but not which site was blocked. If the request fails or takes longer than 1.5 seconds, a bundled quote is shown instead.
 - No analytics, no tracking, and no other network requests.
 
@@ -79,14 +81,14 @@ src/
   domains.js       domain cleanup and subdomain matching
   enforcement.js   what to block, which rules to write, which tabs to move
   blockedUrl.js    the block page URL format
-  attempts.js      daily per-site attempt counter
+  history.js       day-by-day attempts and unblocks, and the stats drawn from them
   searchPass.js    search engines, and the section a search-opened page covers
   content.js       headlines and fallback quotes
   quote.js         ZenQuotes fetch with timeout and fallback
   storage.js       settings, unblocks and attempts in chrome.storage.local
   background.js    service worker: wires the above to Chrome APIs
   blocked/         block page
-  options/         settings page
+  options/         settings page, including the attempts chart
 ```
 
 ## Development

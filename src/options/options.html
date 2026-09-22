@@ -13,6 +13,20 @@
         <p id="status" role="status"></p>
       </header>
 
+      <section id="stats">
+        <h2>Attempts</h2>
+        <p id="stats-empty" hidden>Nothing recorded yet. The chart fills in as you go.</p>
+        <div id="stats-tiles"></div>
+        <figure id="stats-chart">
+          <div id="chart-plot"></div>
+          <figcaption id="chart-caption">Attempts per day over the last 14 days, by site.</figcaption>
+          <p id="chart-readout" aria-hidden="true"></p>
+        </figure>
+        <details id="stats-table-view">
+          <summary>Show the numbers</summary>
+        </details>
+      </section>
+
       <section>
         <h2>Blocked sites</h2>
         <p class="hint" id="sites-hint">
