@@ -47,6 +47,35 @@ export async function saveHistory(history) {
   await chrome.storage.local.set({ history });
 }
 
+// What each blocked tab was showing, so a tab dying does not take the page with it.
+export async function getBlockedTabs() {
+  const { blockedTabs = {} } = await chrome.storage.local.get('blockedTabs');
+  return blockedTabs;
+}
+
+export async function saveBlockedTabs(blockedTabs) {
+  await chrome.storage.local.set({ blockedTabs });
+}
+
+export async function getLostPages() {
+  const { lostPages = [] } = await chrome.storage.local.get('lostPages');
+  return lostPages;
+}
+
+export async function saveLostPages(lostPages) {
+  await chrome.storage.local.set({ lostPages });
+}
+
+// Session storage is cleared when the extension reloads or the browser restarts,
+// but survives the worker being evicted — exactly the line between "Chrome took
+// the tabs" and "the worker just woke up".
+export async function isNewExtensionSession() {
+  const { sessionStarted } = await chrome.storage.session.get('sessionStarted');
+  if (sessionStarted) return false;
+  await chrome.storage.session.set({ sessionStarted: true });
+  return true;
+}
+
 // Search passes live in session storage: they belong to one tab and one browsing
 // session, and are never worth keeping across a browser restart.
 const passKey = (tabId) => `pass:${tabId}`;

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Focus Hours",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Blocks distracting sites on a schedule.",
   "minimum_chrome_version": "108",
   "icons": {

@@ -11,6 +11,7 @@ A Chrome extension that blocks distracting sites on a schedule. By default it bl
 - **A block page with some attitude.** It shows a random snarky headline, your own message, a count of how many times you've tried the site today, and a productivity quote.
 - **Search results can still get through.** Tick "from search" for a site and a link you click in Google, Bing or DuckDuckGo opens. You stay in the section you landed in — that subreddit, or that one video — and the rest of the site stays blocked. Typing the address yourself is still blocked.
 - **A slow escape hatch.** The unblock button counts down 10 seconds before it can be clicked. The countdown only runs while the tab is visible. Unblocking lifts the block on that one site for 10 minutes, then it comes back.
+- **Your pages survive a reload.** Chrome closes every tab showing an extension's page when the extension reloads or updates. Each blocked tab's address is kept in storage too, so the settings page can offer those pages back afterwards. While a site is still blocked, reopening returns to the block page rather than the site.
 - **Stats that build up.** The settings page charts the last 14 days: a bar per day, split by site, with the numbers beside it — today's attempts, the site you reach for most, how often you unblocked, and your busiest and quietest days.
 - **Light and dark themes** that follow your system setting.
 
@@ -43,7 +44,7 @@ Changes take effect immediately, with no reload needed.
 
 ## Privacy
 
-- Your settings, unblock timers and the day-by-day history of attempts and unblocks are stored locally in `chrome.storage.local`. History older than 90 days is discarded. Nothing is synced or sent anywhere.
+- Your settings, unblock timers, the addresses of currently blocked tabs, and the day-by-day history of attempts and unblocks are stored locally in `chrome.storage.local`. History older than 90 days is discarded. Nothing is synced or sent anywhere.
 - To show a quote, the block page requests a random quote from [ZenQuotes](https://zenquotes.io/) each time it loads. ZenQuotes sees an ordinary request from your browser but not which site was blocked. If the request fails or takes longer than 1.5 seconds, a bundled quote is shown instead.
 - No analytics, no tracking, and no other network requests.
 
@@ -75,6 +76,8 @@ Pages that never meet the rules at all — one restored with the Back button, or
 
 Each run is recomputed from storage and the current time, so a missed alarm (for example, while the computer was asleep) sorts itself out on the next run.
 
+Every blocked tab is also written down, so the block page's address is not the only copy. A record is dropped when the tab is restored, navigates away or you close it. Records still pointing at tabs that no longer exist are pages Chrome took with it — the count appears on the toolbar icon, and the settings page offers to reopen them.
+
 ```
 src/
   schedule.js      when blocking is active, and the next time that changes
@@ -83,6 +86,7 @@ src/
   blockedUrl.js    the block page URL format
   history.js       day-by-day attempts and unblocks, and the stats drawn from them
   searchPass.js    search engines, and the section a search-opened page covers
+  lostPages.js     pages left behind when Chrome closes a blocked tab
   content.js       headlines and fallback quotes
   quote.js         ZenQuotes fetch with timeout and fallback
   storage.js       settings, unblocks and attempts in chrome.storage.local
@@ -110,6 +114,7 @@ To test a block without waiting for 10 AM, set the schedule to start a minute fr
 - Search links are recognized by a fixed list of search hosts, so a niche engine won't be treated as one.
 - Reloading a page that has no section, such as a YouTube video opened from a search, blocks it again. The section rule needs a path to match on.
 - Restored tabs reload their page, so the video position, scroll position and any form input are lost.
+- Reloading the extension still closes blocked tabs; they are offered back rather than kept open, and their scroll position is gone.
 
 ## License
 

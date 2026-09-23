@@ -22,6 +22,8 @@ async function init() {
   renderSchedule();
   byId('message').value = settings.message;
 
+  byId('lost-reopen').addEventListener('click', () => resolveLostPages('reopen'));
+  byId('lost-dismiss').addEventListener('click', () => resolveLostPages('dismiss'));
   byId('add-site').addEventListener('submit', onAddSite);
   byId('schedule-form').addEventListener('input', renderScheduleValidation);
   byId('schedule-form').addEventListener('submit', onSaveSchedule);
@@ -38,6 +40,7 @@ async function init() {
     renderStatus();
   });
   setInterval(renderStatus, STATUS_REFRESH_MS);
+  await renderLostPages();
 }
 
 async function updateSettings(changes) {
@@ -57,6 +60,29 @@ function renderStatus() {
     text = `Next block starts ${weekday} ${formatTime(next)}.`;
   }
   byId('status').textContent = text;
+}
+
+// Pages that were open when the extension reloaded: Chrome closes every tab
+// showing one of its pages, so they are offered back here.
+async function renderLostPages(action = 'list') {
+  const { pages = [] } = (await chrome.runtime.sendMessage({ type: 'lostPages', action })) ?? {};
+  const banner = byId('lost');
+  banner.hidden = pages.length === 0;
+  if (pages.length === 0) return;
+  const sites = [...new Set(pages.map((page) => page.site))].join(' and ');
+  byId('lost-text').textContent =
+    `${pages.length} ${pages.length === 1 ? 'page was' : 'pages were'} closed when the extension reloaded (${sites}).`;
+}
+
+async function resolveLostPages(action) {
+  byId('lost-reopen').disabled = true;
+  byId('lost-dismiss').disabled = true;
+  try {
+    await renderLostPages(action);
+  } finally {
+    byId('lost-reopen').disabled = false;
+    byId('lost-dismiss').disabled = false;
+  }
 }
 
 async function renderStats() {

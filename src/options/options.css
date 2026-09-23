@@ -542,3 +542,41 @@ button.link:hover {
 .chart-table thead th {
   color: var(--muted);
 }
+
+/* Pages lost to an extension reload */
+
+.lost {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 14px;
+  background: var(--note);
+  color: var(--note-ink);
+  border-radius: 8px;
+}
+
+.lost p {
+  margin: 0;
+}
+
+.lost-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The banner is always the note yellow, so its buttons take the note's own pair. */
+.lost button:not(.link):not(:disabled) {
+  background: var(--note-ink);
+  border-color: var(--note-ink);
+  color: var(--note);
+}
+
+.lost button.link {
+  border: none;
+  background: none;
+  color: var(--note-ink);
+}

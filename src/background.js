@@ -12,6 +12,7 @@ import {
 } from './enforcement.js';
 import { sectionScope, sectionPattern, isWithinScope } from './searchPass.js';
 import { recordEvent, dayCount, pruneHistory } from './history.js';
+import { reconcile, mergeLostPages, reopenTarget } from './lostPages.js';
 import {
   DEFAULT_SETTINGS,
   getSettings,
@@ -24,6 +25,11 @@ import {
   clearAllPasses,
   getHistory,
   saveHistory,
+  getBlockedTabs,
+  saveBlockedTabs,
+  getLostPages,
+  saveLostPages,
+  isNewExtensionSession,
 } from './storage.js';
 
 const ALARM_NAME = 'sync';
@@ -123,6 +129,7 @@ async function onPageLoad(details) {
   const site = matchingSite(url, blocked);
   if (!site) {
     await revokePass(tabId);
+    await forgetBlockedTab(tabId);
     return;
   }
   const pass = await getPass(tabId);
@@ -144,6 +151,7 @@ async function onInPageNavigation({ tabId, frameId, url }) {
   const site = matchingSite(url, blocked);
   if (!site) {
     if (pass) await revokePass(tabId);
+    await forgetBlockedTab(tabId);
     return;
   }
   await blockTab(tabId, site, url);
@@ -187,6 +195,7 @@ async function blockTab(tabId, site, url) {
   await revokePass(tabId);
   try {
     await chrome.tabs.update(tabId, { url: buildBlockedUrl(BLOCKED_PAGE_BASE, { site, url }) });
+    await rememberBlockedTab(tabId, { site, url, title: '' });
   } catch {
     // Tab closed or moved on; the next navigation in it starts from scratch.
   }
@@ -204,6 +213,11 @@ async function revokeAllPasses() {
 
 async function updateTabs(blocked) {
   const tabs = await chrome.tabs.query({});
+  // One read and one write for the whole sweep: a write per tab would race with
+  // itself and keep only the last tab's record.
+  const records = await getBlockedTabs();
+  let changed = false;
+
   await Promise.all(
     tabs.map(async (tab) => {
       const target = tabRedirect(tab, blocked, BLOCKED_PAGE_BASE);
@@ -212,9 +226,71 @@ async function updateTabs(blocked) {
         await chrome.tabs.update(tab.id, { url: target });
       } catch {
         // Tab closed or navigated away mid-sweep; the next sync will reconcile.
+        return;
+      }
+      const site = target.startsWith(BLOCKED_PAGE_BASE) ? matchingSite(tab.url, blocked) : null;
+      if (site) {
+        records[tab.id] = { site, url: tab.url, title: tab.title ?? '', at: Date.now() };
+        changed = true;
+      } else if (tab.id in records) {
+        delete records[tab.id];
+        changed = true;
       }
     }),
   );
+
+  if (changed) await saveBlockedTabs(records);
+}
+
+async function rememberBlockedTab(tabId, page) {
+  if (!page.site || !page.url) return;
+  const records = await getBlockedTabs();
+  records[tabId] = { ...page, at: Date.now() };
+  await saveBlockedTabs(records);
+}
+
+async function forgetBlockedTab(tabId) {
+  const records = await getBlockedTabs();
+  if (!(tabId in records)) return;
+  delete records[tabId];
+  await saveBlockedTabs(records);
+}
+
+// Records left pointing at pages no tab is showing are what Chrome took with it
+// when the extension reloaded. This runs once per extension session: the worker
+// itself restarts constantly, and a tab closed while it was asleep must not be
+// mistaken for one that was taken away.
+async function collectLostPages() {
+  if (await isNewExtensionSession()) {
+    const records = await getBlockedTabs();
+    const { active, lost } = reconcile(records, await chrome.tabs.query({}), BLOCKED_PAGE_BASE);
+    await saveBlockedTabs(active);
+    if (lost.length > 0) {
+      await saveLostPages(mergeLostPages(await getLostPages(), lost));
+    }
+  }
+  await showLostCount();
+}
+
+async function showLostCount() {
+  const count = (await getLostPages()).length;
+  await chrome.action.setBadgeText({ text: count === 0 ? '' : String(count) });
+  await chrome.action.setBadgeBackgroundColor({ color: '#d6246e' });
+}
+
+async function reopenLostPages() {
+  const pages = await getLostPages();
+  const { blocked } = await currentlyBlocked();
+  for (const page of pages) {
+    const target = reopenTarget(page, blocked, BLOCKED_PAGE_BASE);
+    if (target) await chrome.tabs.create({ url: target, active: false });
+  }
+  await dismissLostPages();
+}
+
+async function dismissLostPages() {
+  await saveLostPages([]);
+  await showLostCount();
 }
 
 async function scheduleWake(when) {
@@ -238,6 +314,9 @@ async function migrateHistory() {
 
 chrome.runtime.onStartup.addListener(sync);
 
+// Every worker start, including the one right after an extension reload.
+enqueue(collectLostPages);
+
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local' || !(changes.settings || changes.unblocks)) return;
   blockedSnapshot = null;
@@ -251,6 +330,19 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // The block page asks the worker to record, so simultaneous tabs queue behind
 // each other instead of overwriting one another's history.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === 'lostPages') {
+    enqueue(async () => {
+      try {
+        if (message.action === 'reopen') await reopenLostPages();
+        else if (message.action === 'dismiss') await dismissLostPages();
+        sendResponse({ pages: await getLostPages() });
+      } catch (error) {
+        console.error('[focus-hours] lost pages failed', error);
+        sendResponse({ pages: [] });
+      }
+    });
+    return true;
+  }
   if (message?.type !== 'history') return false;
   enqueue(async () => {
     const now = new Date();
@@ -274,10 +366,24 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   if (details.frameId === 0) enqueue(() => onInPageNavigation(details));
 });
 
-chrome.tabs.onRemoved.addListener((tabId) => enqueue(() => revokePass(tabId)));
+chrome.tabs.onRemoved.addListener((tabId) =>
+  enqueue(async () => {
+    await revokePass(tabId);
+    // You closed it yourself, so the page is not lost.
+    await forgetBlockedTab(tabId);
+  }),
+);
 
+// The same page carries on under a new tab id (a prerender taking over, say).
 chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) =>
-  enqueue(() => revokePass(removedTabId)),
+  enqueue(async () => {
+    await revokePass(removedTabId);
+    const records = await getBlockedTabs();
+    if (!(removedTabId in records)) return;
+    records[addedTabId] = records[removedTabId];
+    delete records[removedTabId];
+    await saveBlockedTabs(records);
+  }),
 );
 
 chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
