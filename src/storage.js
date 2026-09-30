@@ -1,4 +1,5 @@
-import { normalizeSites } from './domains.js';
+import { normalizeSites, normalizeSearchSources } from './domains.js';
+import { DEFAULT_SEARCH_SOURCES } from './searchPass.js';
 
 export const DEFAULT_MESSAGE = 'This site is blocked during focus hours. Get back to it.';
 
@@ -9,6 +10,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   ],
   schedule: { days: [1, 2, 3, 4, 5], start: '10:00', end: '16:00' },
   message: DEFAULT_MESSAGE,
+  searchSources: DEFAULT_SEARCH_SOURCES,
 });
 
 export async function getSettings() {
@@ -19,6 +21,7 @@ export async function getSettings() {
     ...settings,
     sites: normalizeSites(settings.sites ?? defaults.sites),
     schedule: { ...defaults.schedule, ...settings.schedule },
+    searchSources: normalizeSearchSources(settings.searchSources ?? defaults.searchSources),
   };
 }
 

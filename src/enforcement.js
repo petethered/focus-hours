@@ -1,6 +1,5 @@
 import { isBlockedNow, nextBoundary } from './schedule.js';
 import { matchesDomain } from './domains.js';
-import { SEARCH_ENGINE_DOMAINS } from './searchPass.js';
 import { buildBlockedUrl, redirectSubstitution, parseBlockedUrl } from './blockedUrl.js';
 
 export function activeUnblocks(unblocks, now) {
@@ -52,16 +51,21 @@ export function buildRedirectRules(domains, base) {
 
 // Allow rules outrank the block rules, so a page opened from a search result loads.
 // Staying inside the section it opened is enforced per tab in background.js.
+// A site never counts as its own search source, or every link on a passed page
+// would hand out a fresh pass for wherever it led.
 const SEARCH_ALLOW_RULE_OFFSET = 1000;
 
-export function buildSearchAllowRules(domains) {
+// No sources means no allow rules: Chrome rejects an empty initiatorDomains.
+export function buildSearchAllowRules(domains, sources) {
+  if (sources.length === 0) return [];
   return domains.map((domain, index) => ({
     id: SEARCH_ALLOW_RULE_OFFSET + index + 1,
     priority: 2,
     action: { type: 'allow' },
     condition: {
       requestDomains: [domain],
-      initiatorDomains: SEARCH_ENGINE_DOMAINS,
+      initiatorDomains: sources,
+      excludedInitiatorDomains: [domain],
       resourceTypes: ['main_frame'],
     },
   }));

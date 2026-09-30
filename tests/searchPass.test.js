@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  SEARCH_ENGINE_DOMAINS,
+  DEFAULT_SEARCH_SOURCES,
   sectionScope,
   sectionPattern,
   isWithinScope,
@@ -10,14 +10,15 @@ import {
 const THREAD = 'https://www.reddit.com/r/programming/comments/abc/tabs_vs_spaces/';
 const VIDEO = 'https://www.youtube.com/watch?v=abc';
 
-test('SEARCH_ENGINE_DOMAINS lists search hosts, not whole properties', () => {
-  assert.ok(SEARCH_ENGINE_DOMAINS.includes('www.google.com'));
-  assert.ok(SEARCH_ENGINE_DOMAINS.includes('duckduckgo.com'));
+test('DEFAULT_SEARCH_SOURCES lists search hosts, not whole properties', () => {
+  assert.ok(DEFAULT_SEARCH_SOURCES.includes('www.google.com'));
+  assert.ok(DEFAULT_SEARCH_SOURCES.includes('duckduckgo.com'));
+  assert.ok(DEFAULT_SEARCH_SOURCES.includes('news.ycombinator.com'));
   // docs.google.com is a subdomain of google.com, so the bare domain must not be listed.
-  assert.ok(!SEARCH_ENGINE_DOMAINS.includes('google.com'));
-  assert.ok(!SEARCH_ENGINE_DOMAINS.includes('yahoo.com'));
-  for (const domain of SEARCH_ENGINE_DOMAINS) {
-    assert.match(domain, /^[a-z0-9-]+(\.[a-z0-9-]+)+$/);
+  assert.ok(!DEFAULT_SEARCH_SOURCES.includes('google.com'));
+  assert.ok(!DEFAULT_SEARCH_SOURCES.includes('yahoo.com'));
+  for (const host of DEFAULT_SEARCH_SOURCES) {
+    assert.match(host, /^[a-z0-9-]+(\.[a-z0-9-]+)+$/);
   }
 });
 

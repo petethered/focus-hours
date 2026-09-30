@@ -9,7 +9,7 @@ import {
   buildSearchAllowRules,
   tabRedirect,
 } from '../src/enforcement.js';
-import { SEARCH_ENGINE_DOMAINS } from '../src/searchPass.js';
+import { DEFAULT_SEARCH_SOURCES } from '../src/searchPass.js';
 import { buildBlockedUrl } from '../src/blockedUrl.js';
 
 const BASE = 'chrome-extension://abc/src/blocked/blocked.html';
@@ -55,20 +55,30 @@ test('searchPassDomains keeps only blocked sites that allow search links', () =>
 });
 
 test('buildSearchAllowRules allows search-initiated page loads, outranking the block rules', () => {
-  const [rule, ...rest] = buildSearchAllowRules(['reddit.com']);
+  const [rule, ...rest] = buildSearchAllowRules(['reddit.com'], DEFAULT_SEARCH_SOURCES);
   assert.equal(rest.length, 0);
   assert.deepEqual(rule.action, { type: 'allow' });
   assert.deepEqual(rule.condition, {
     requestDomains: ['reddit.com'],
-    initiatorDomains: SEARCH_ENGINE_DOMAINS,
+    initiatorDomains: DEFAULT_SEARCH_SOURCES,
+    excludedInitiatorDomains: ['reddit.com'],
     resourceTypes: ['main_frame'],
   });
   assert.ok(rule.priority > buildRedirectRules(['reddit.com'], BASE)[0].priority);
 });
 
+test('buildSearchAllowRules takes its initiators from the given sources', () => {
+  const [rule] = buildSearchAllowRules(['reddit.com'], ['news.ycombinator.com']);
+  assert.deepEqual(rule.condition.initiatorDomains, ['news.ycombinator.com']);
+});
+
+test('buildSearchAllowRules writes no rules when there are no sources', () => {
+  assert.deepEqual(buildSearchAllowRules(['reddit.com'], []), []);
+});
+
 test('buildSearchAllowRules ids never collide with the block rules', () => {
   const blockIds = buildRedirectRules(Array.from({ length: 50 }, (_, i) => `s${i}.com`), BASE).map((r) => r.id);
-  const allowIds = buildSearchAllowRules(['a.com', 'b.com']).map((r) => r.id);
+  const allowIds = buildSearchAllowRules(['a.com', 'b.com'], DEFAULT_SEARCH_SOURCES).map((r) => r.id);
   assert.equal(allowIds.length, 2);
   for (const id of allowIds) assert.ok(!blockIds.includes(id));
 });

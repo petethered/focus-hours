@@ -63,7 +63,7 @@ async function runSync() {
   blockedSnapshot = null;
   await revokeAllPasses();
   try {
-    await replaceRules(blocked, searchPassDomains(settings, blocked));
+    await replaceRules(blocked, searchPassDomains(settings, blocked), settings.searchSources);
     await updateTabs(blocked);
   } finally {
     // Always arm the next wake-up, or a failed run would leave stale rules in place indefinitely.
@@ -71,13 +71,13 @@ async function runSync() {
   }
 }
 
-async function replaceRules(domains, searchDomains) {
+async function replaceRules(domains, passDomains, searchSources) {
   const existing = await chrome.declarativeNetRequest.getDynamicRules();
   await chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds: existing.map((rule) => rule.id),
     addRules: [
       ...buildRedirectRules(domains, BLOCKED_PAGE_BASE),
-      ...buildSearchAllowRules(searchDomains),
+      ...buildSearchAllowRules(passDomains, searchSources),
     ],
   });
 }

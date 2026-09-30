@@ -97,7 +97,7 @@ main {
   #stats {
     grid-column: 2;
     /* Spans the settings sections beside it, so they keep flowing down column 1. */
-    grid-row: 2 / span 3;
+    grid-row: 2 / span 4;
     align-self: start;
     position: sticky;
     top: 24px;
@@ -160,7 +160,8 @@ form > label {
 
 /* Site list */
 
-#sites {
+#sites,
+#sources {
   list-style: none;
   margin: 0 0 20px;
   padding: 0;
@@ -169,20 +170,24 @@ form > label {
   border-radius: 8px;
 }
 
-#sites:empty {
+#sites:empty,
+#sources:empty {
   display: none;
 }
 
-#sites li {
+#sites li,
+#sources li {
   padding: 8px 8px 8px 14px;
 }
 
-#sites li + li {
+#sites li + li,
+#sources li + li {
   border-top: 1px solid var(--line);
 }
 
 .site-head,
-#sites li {
+#sites li,
+#sources li {
   display: grid;
   grid-template-columns: 1fr 96px 88px;
   align-items: center;
@@ -232,12 +237,14 @@ form > label {
   text-indent: 0;
 }
 
-#sites li span {
+#sites li span,
+#sources li span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-#sites li button {
+#sites li button,
+#sources li button {
   flex: none;
   padding: 4px 10px;
   color: var(--muted);
@@ -246,9 +253,30 @@ form > label {
   font-weight: 500;
 }
 
-#sites li button:hover {
+#sites li button:hover,
+#sources li button:hover {
   color: var(--error);
   border-color: var(--line);
+}
+
+/* Search sources: the same list, tucked behind a summary since it runs long. */
+
+#sources-view {
+  margin-bottom: 20px;
+  font-size: 0.9375rem;
+}
+
+#sources-view summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+#sources-view[open] summary {
+  margin-bottom: 12px;
+}
+
+#sources li {
+  grid-template-columns: 1fr 88px;
 }
 
 /* Controls */

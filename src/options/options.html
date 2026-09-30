@@ -55,6 +55,30 @@
       </section>
 
       <section>
+        <h2>Search sources</h2>
+        <p class="hint" id="sources-hint">
+          Clicking a link on one of these sites counts as coming <strong>from search</strong>.
+          Include the www. when there is one &mdash; www.google.com, not google.com &mdash;
+          or links from Google Docs and other Google sites would count too.
+        </p>
+        <details id="sources-view">
+          <summary id="sources-summary"></summary>
+          <ul id="sources" aria-describedby="sources-hint"></ul>
+        </details>
+        <form id="add-source">
+          <label for="source-input">Add a search source</label>
+          <div class="row">
+            <input id="source-input" type="text" placeholder="news.ycombinator.com" autocomplete="off" />
+            <button type="submit">Add</button>
+          </div>
+        </form>
+        <p id="source-error" class="error" role="alert" hidden></p>
+        <div class="actions">
+          <button id="reset-sources" type="button" class="link">Reset to defaults</button>
+        </div>
+      </section>
+
+      <section>
         <h2>Schedule</h2>
         <form id="schedule-form">
           <fieldset id="days">

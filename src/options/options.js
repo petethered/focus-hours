@@ -1,7 +1,7 @@
-import { DEFAULT_MESSAGE, getSettings, saveSettings, getHistory } from '../storage.js';
+import { DEFAULT_MESSAGE, DEFAULT_SETTINGS, getSettings, saveSettings, getHistory } from '../storage.js';
 import { CHART_DAYS, summarize } from '../history.js';
 import { renderChart, renderLegend, renderTable, renderTiles } from './chart.js';
-import { addSite } from '../domains.js';
+import { addSite, addSearchSource } from '../domains.js';
 import { isBlockedNow, nextBoundary, validateSchedule, formatTime } from '../schedule.js';
 
 const STATUS_REFRESH_MS = 30_000;
@@ -19,12 +19,15 @@ async function init() {
   renderStatus();
   await renderStats();
   renderSites();
+  renderSources();
   renderSchedule();
   byId('message').value = settings.message;
 
   byId('lost-reopen').addEventListener('click', () => resolveLostPages('reopen'));
   byId('lost-dismiss').addEventListener('click', () => resolveLostPages('dismiss'));
   byId('add-site').addEventListener('submit', onAddSite);
+  byId('add-source').addEventListener('submit', onAddSource);
+  byId('reset-sources').addEventListener('click', onResetSources);
   byId('schedule-form').addEventListener('input', renderScheduleValidation);
   byId('schedule-form').addEventListener('submit', onSaveSchedule);
   byId('message-form').addEventListener('submit', onSaveMessage);
@@ -37,6 +40,7 @@ async function init() {
     if (!changes.settings) return;
     settings = await getSettings();
     renderSites();
+    renderSources();
     renderStatus();
   });
   setInterval(renderStatus, STATUS_REFRESH_MS);
@@ -170,6 +174,51 @@ async function onAddSite(event) {
   input.value = '';
   await updateSettings({ sites: result.sites });
   renderSites();
+}
+
+function renderSources() {
+  const count = settings.searchSources.length;
+  byId('sources-summary').textContent =
+    count === 0 ? 'No search sources, so from search lets nothing through.' : `Show all ${count} ${count === 1 ? 'source' : 'sources'}`;
+  byId('sources').replaceChildren(
+    ...settings.searchSources.map((host) => {
+      const item = document.createElement('li');
+
+      const name = document.createElement('span');
+      name.textContent = host;
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = 'Remove';
+      remove.setAttribute('aria-label', `Remove ${host}`);
+      remove.addEventListener('click', () => removeSource(host));
+
+      item.append(name, remove);
+      return item;
+    }),
+  );
+}
+
+function removeSource(host) {
+  return updateSettings({ searchSources: settings.searchSources.filter((source) => source !== host) });
+}
+
+async function onAddSource(event) {
+  event.preventDefault();
+  const input = byId('source-input');
+  const result = addSearchSource(settings.searchSources, input.value);
+  showError('source-error', result.error);
+  if (result.error) return;
+  input.value = '';
+  await updateSettings({ searchSources: result.sources });
+  renderSources();
+}
+
+async function onResetSources() {
+  showError('source-error', null);
+  byId('source-input').value = '';
+  await updateSettings({ searchSources: [...DEFAULT_SETTINGS.searchSources] });
+  renderSources();
 }
 
 function renderSchedule() {

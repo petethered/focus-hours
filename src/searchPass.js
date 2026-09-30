@@ -2,11 +2,12 @@
 // visit to the section it landed in (a subreddit, a channel) rather than the
 // whole site.
 
-// Hosts whose links count as "came from a search". declarativeNetRequest matches
-// these against the navigation's initiator, and subdomains of a listed host count
-// too — hence search hosts rather than whole properties, or any link in Google
-// Docs, Groups or Sites would hand out a pass.
-export const SEARCH_ENGINE_DOMAINS = [
+// Hosts whose links count as "came from a search" until the list is edited in
+// settings. declarativeNetRequest matches these against the navigation's
+// initiator, and subdomains of a listed host count too — hence search hosts
+// rather than whole properties, or any link in Google Docs, Groups or Sites would
+// hand out a pass.
+export const DEFAULT_SEARCH_SOURCES = [
   'www.google.com',
   'www.google.co.uk',
   'www.google.ca',
@@ -27,6 +28,7 @@ export const SEARCH_ENGINE_DOMAINS = [
   'www.startpage.com',
   'search.yahoo.com',
   'kagi.com',
+  'news.ycombinator.com',
 ];
 
 // Query parameters that change while you stay on the same page: a video
