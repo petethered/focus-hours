@@ -60,6 +60,12 @@ test('matchesDomain matches subdomains', () => {
   assert.equal(matchesDomain('https://www.youtube.com/watch?v=1', 'youtube.com'), true);
 });
 
+test('matchesDomain never matches the Google sign-in hop through YouTube', () => {
+  const signIn = 'https://accounts.youtube.com/accounts/SetSID?continue=https://mail.google.com/mail';
+  assert.equal(matchesDomain(signIn, 'youtube.com'), false);
+  assert.equal(matchesDomain('https://www.youtube.com/', 'youtube.com'), true);
+});
+
 test('matchesDomain rejects look-alike hosts', () => {
   assert.equal(matchesDomain('https://notreddit.com/', 'reddit.com'), false);
   assert.equal(matchesDomain('https://reddit.com.evil.io/', 'reddit.com'), false);

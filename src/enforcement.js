@@ -1,5 +1,5 @@
 import { isBlockedNow, nextBoundary } from './schedule.js';
-import { matchesDomain } from './domains.js';
+import { matchesDomain, exemptHosts } from './domains.js';
 import { buildBlockedUrl, redirectSubstitution, parseBlockedUrl } from './blockedUrl.js';
 
 export function activeUnblocks(unblocks, now) {
@@ -34,19 +34,23 @@ export function nextWakeTime(settings, unblocks, now) {
 }
 
 export function buildRedirectRules(domains, base) {
-  return domains.map((domain, index) => ({
-    id: index + 1,
-    priority: 1,
-    action: {
-      type: 'redirect',
-      redirect: { regexSubstitution: redirectSubstitution(base, domain) },
-    },
-    condition: {
-      regexFilter: '^(.*)$',
-      requestDomains: [domain],
-      resourceTypes: ['main_frame'],
-    },
-  }));
+  return domains.map((domain, index) => {
+    const exempt = exemptHosts(domain);
+    return {
+      id: index + 1,
+      priority: 1,
+      action: {
+        type: 'redirect',
+        redirect: { regexSubstitution: redirectSubstitution(base, domain) },
+      },
+      condition: {
+        regexFilter: '^(.*)$',
+        requestDomains: [domain],
+        ...(exempt.length > 0 && { excludedRequestDomains: exempt }),
+        resourceTypes: ['main_frame'],
+      },
+    };
+  });
 }
 
 // Allow rules outrank the block rules, so a page opened from a search result loads.

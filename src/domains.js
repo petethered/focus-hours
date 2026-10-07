@@ -1,5 +1,18 @@
 const HOSTNAME_PATTERN = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 
+// Signing in to any Google service bounces through accounts.youtube.com to set
+// YouTube's cookies, so blocking it would break Gmail sign-in.
+const NEVER_BLOCKED_HOSTS = ['accounts.youtube.com'];
+
+// The never-blocked hosts a rule for this domain would otherwise catch.
+export function exemptHosts(domain) {
+  return NEVER_BLOCKED_HOSTS.filter((host) => isWithinDomain(host, domain));
+}
+
+function isWithinDomain(host, domain) {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
 // A hostname as typed or pasted, www. and all: "https://www.google.com/search" gives
 // "www.google.com".
 export function normalizeHost(input) {
@@ -32,7 +45,7 @@ export function matchesDomain(url, domain) {
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
   const host = parsed.hostname.toLowerCase().replace(/\.$/, '');
-  return host === domain || host.endsWith(`.${domain}`);
+  return isWithinDomain(host, domain) && !NEVER_BLOCKED_HOSTS.includes(host);
 }
 
 // A site entry is { domain, searchPass }; older settings stored a bare domain string.

@@ -116,6 +116,16 @@ test('buildRedirectRules creates one main-frame redirect per domain', () => {
   assert.deepEqual(buildRedirectRules(['a.com', 'b.com'], BASE).map((rule) => rule.id), [1, 2]);
 });
 
+test('buildRedirectRules leaves the Google sign-in hop out of the YouTube rule', () => {
+  const [rule] = buildRedirectRules(['youtube.com'], BASE);
+  assert.deepEqual(rule.condition.excludedRequestDomains, ['accounts.youtube.com']);
+});
+
+test('tabRedirect leaves a tab mid sign-in through YouTube alone', () => {
+  const tab = { url: 'https://accounts.youtube.com/accounts/SetSID?ssdc=1', title: '' };
+  assert.equal(tabRedirect(tab, ['youtube.com'], BASE), null);
+});
+
 test('tabRedirect sweeps a tab on a blocked site, keeping title and url', () => {
   const tab = { url: 'https://www.reddit.com/r/cats', title: 'r/cats' };
   assert.equal(
