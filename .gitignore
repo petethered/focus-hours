@@ -4,3 +4,8 @@ node_modules/
 *.crx
 *.pem
 .claude/
+
+# Machine-local agent files
+settings.local.json
+CLAUDE.local.md
+.superpowers/
