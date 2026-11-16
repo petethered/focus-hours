@@ -1,5 +1,8 @@
 # Focus Hours
 
+[![Test](https://github.com/petethered/focus-hours/actions/workflows/test.yml/badge.svg)](https://github.com/petethered/focus-hours/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A Chrome extension that blocks distracting sites on a schedule. By default it blocks Reddit and YouTube from 10:00 to 16:00, Monday to Friday. You can change the sites, days, hours and message.
 
 ![Block page](docs/screenshots/blocked-1280-light.png)
@@ -107,6 +110,10 @@ npm test
 To try the extension, load it unpacked (see [Install](#install)). After changing code, click the reload icon on the extension's card in `chrome://extensions`.
 
 To test a block without waiting for 10 AM, set the schedule to start a minute from now.
+
+## How it was built
+
+Focus Hours was built with [Claude Code](https://claude.com/claude-code) as the coding agent. The decisions are kept in plain ES modules with no `chrome.*` calls, so they can be unit-tested without a browser, with Node's built-in test runner as the gate locally and in CI. The tricky parts were Chrome-specific: Chrome closes every extension page when the extension reloads, so blocked tabs are recorded in storage and offered back, and sites like Reddit and YouTube change URL without a page load, so the service worker watches history navigations to stop a search pass from escaping its section. [CLAUDE.md](CLAUDE.md), added after the initial build, describes the code for anyone working in it with an agent.
 
 ## Limitations
 
