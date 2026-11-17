@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 - 2026-11-16
+## 0.5.0 - 2026-11-17
 
 The first tagged release. It covers everything built so far (September to October 2026).
 
